@@ -194,6 +194,8 @@ int main() {
         } else if (choice == 2)        // envoweling
         {
 
+            char temp_string[MAX_STRING_LENGTH >> 1] = {0};
+
             /* Initialize a empty string */
             struct message out_going_msg = {2, ""};
 
@@ -204,11 +206,43 @@ int main() {
             printf("Enter non-vowel part of message to envowel: ");
             len = 0;
             while ((c = getchar()) != '\n') {
-                out_going_msg.string[len] = c;
+                temp_string[len] = c;
                 len++;
             }
+
+            memcpy(out_going_msg.string, temp_string, MAX_STRING_LENGTH >> 1);
+
+            /* prompt user for the input */
+            printf("Enter vowel part of message to envowel: ");
+            len = 0;
+            while ((c = getchar()) != '\n') {
+                temp_string[len] = c;
+                len++;
+            }
+            memcpy(&out_going_msg.string[MAX_STRING_LENGTH >> 1], temp_string, MAX_STRING_LENGTH >> 1);
+
             /* make sure the message is null-terminated in C */
             out_going_msg.string[len] = '\0';
+
+            /* send it to the tcp_server via the socket */
+            send(sockfd_tcp, &out_going_msg, sizeof(struct message), 0);
+
+            struct message in_coming_msg_vowels = {0, ""};
+
+            /* Get the vowels from the tcp_server */
+            if ((bytes = recv(sockfd_tcp, in_coming_msg_vowels.string, len, 0)) > 0) {
+                /* make sure the message is null-terminated in C */
+                in_coming_msg_vowels.string[bytes] = '\0';
+                printf("Answer received from tcp_server: ");
+                printf("`%s'\n", in_coming_msg_vowels.string);
+            } else {
+                /* an error condition if the tcp_server dies unexpectedly */
+                printf("Sorry, dude. Server failed!\n");
+                close(sockfd_tcp);
+                exit(1);
+            }
+
+
         }
 
         printf("Invalid menu selection. Please try again.\n");

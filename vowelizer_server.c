@@ -176,7 +176,10 @@ int main() {
                 }
                 else if (incoming_message.command == 2)
                 {
+                    memcpy(v, incoming_message.string, MAX_STRING_LENGTH>>1);
+                    memcpy(nv, &incoming_message.string[MAX_STRING_LENGTH>>1], MAX_STRING_LENGTH>>1);
                     merge();
+                    send(childsockfd, mstr, strlen(v), 0);
                 }
                 else if (incoming_message.command == 3)
                 {
